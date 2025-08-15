@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Portfolio Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Investment Portfolio Tracker</h1>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Current Portfolio Value</h3>
+                <div class="value" id="currentValue">€0</div>
+                <div class="subtext">Total invested + gains</div>
+            </div>
+            <div class="card">
+                <h3>Total Invested</h3>
+                <div class="value" id="totalInvested">€0</div>
+                <div class="subtext">Your contributions</div>
+            </div>
+            <div class="card">
+                <h3>Total Gains</h3>
+                <div class="value" id="totalGains">€0</div>
+                <div class="subtext">Unrealized profits</div>
+            </div>
+            <div class="card">
+                <h3>Monthly Dividend Income</h3>
+                <div class="value" id="monthlyDividends">€0</div>
+                <div class="subtext">Expected monthly income</div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <h3 style="margin-bottom: 20px; color: #495057;">📊 Portfolio Settings</h3>
+            <div class="input-row">
+                <label>Monthly Investment:</label>
+                <input type="number" id="monthlyAmount" value="1000" min="0">
+
+                <label>Stock Allocation (%):</label>
+                <input type="number" id="stockPercent" value="60" min="0" max="100">
+
+                <label>Bond Allocation (%):</label>
+                <input type="number" id="bondPercent" value="40" min="0" max="100">
+            </div>
+            <div class="input-row">
+                <label>Expected Stock Return (%):</label>
+                <input type="number" id="stockReturn" value="7" min="0" step="0.1">
+
+                <label>Expected Bond Return (%):</label>
+                <input type="number" id="bondReturn" value="3" min="0" step="0.1">
+
+                <button class="btn" onclick="updateProjections()">Update Projections</button>
+            </div>
+
+            <div class="allocation-bar">
+                <div class="allocation-segment stocks" id="stockBar">60% Stocks</div>
+                <div class="allocation-segment bonds" id="bondBar">40% Bonds</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab(event, 'projections')">📈 Long-term Projections</button>
+            <button class="tab" onclick="showTab(event, 'monthly')">📅 Monthly Tracker</button>
+            <button class="tab" onclick="showTab(event, 'portfolio')">💼 Portfolio Breakdown</button>
+            <button class="tab" onclick="showTab(event, 'scenarios')">🎯 Scenarios</button>
+        </div>
+
+        <div id="projections" class="tab-content active">
+            <div class="table-container">
+                <h3 style="margin-bottom: 15px;">🚀 Long-term Growth Projections</h3>
+                <table id="projectionsTable">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Age</th>
+                            <th>Total Invested</th>
+                            <th>Portfolio Value</th>
+                            <th>Annual Gains</th>
+                            <th>Total Gains</th>
+                            <th>Annual Dividends</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="monthly" class="tab-content">
+            <div class="table-container">
+                <h3 style="margin-bottom: 15px;">📅 Monthly Investment Tracker</h3>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" onclick="addMonthlyEntry()">+ Add This Month's Investment</button>
+                </div>
+                <table id="monthlyTable">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Invested</th>
+                            <th>VWCE (60%)</th>
+                            <th>VGEA (40%)</th>
+                            <th>Portfolio Value</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="portfolio" class="tab-content">
+            <div class="table-container">
+                <h3 style="margin-bottom: 15px;">💼 Current Portfolio Breakdown</h3>
+                <table id="portfolioTable">
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Ticker</th>
+                            <th>Target %</th>
+                            <th>Current Value</th>
+                            <th>Current %</th>
+                            <th>Rebalance Needed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Global Stocks</td>
+                            <td>VWCE</td>
+                            <td id="targetStock">60%</td>
+                            <td id="currentStockValue">€0</td>
+                            <td id="currentStockPercent">0%</td>
+                            <td id="rebalanceStock">-</td>
+                        </tr>
+                        <tr>
+                            <td>Euro Bonds</td>
+                            <td>VGEA</td>
+                            <td id="targetBond">40%</td>
+                            <td id="currentBondValue">€0</td>
+                            <td id="currentBondPercent">0%</td>
+                            <td id="rebalanceBond">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="scenarios" class="tab-content">
+            <div class="table-container">
+                <h3 style="margin-bottom: 15px;">🎯 Different Scenarios After 20 Years</h3>
+                <table id="scenariosTable">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Annual Return</th>
+                            <th>Total Invested</th>
+                            <th>Final Value</th>
+                            <th>Total Gains</th>
+                            <th>Annual Dividends</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🐻 Bear Market</td>
+                            <td>4%</td>
+                            <td>€240,000</td>
+                            <td id="bearValue">€366,096</td>
+                            <td class="positive" id="bearGains">€126,096</td>
+                            <td class="positive" id="bearDividends">€7,322</td>
+                        </tr>
+                        <tr>
+                            <td>📊 Moderate</td>
+                            <td>6%</td>
+                            <td>€240,000</td>
+                            <td id="modValue">€462,041</td>
+                            <td class="positive" id="modGains">€222,041</td>
+                            <td class="positive" id="modDividends">€9,241</td>
+                        </tr>
+                        <tr>
+                            <td>🚀 Bull Market</td>
+                            <td>8%</td>
+                            <td>€240,000</td>
+                            <td id="bullValue">€589,020</td>
+                            <td class="positive" id="bullGains">€349,020</td>
+                            <td class="positive" id="bullDividends">€11,780</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
