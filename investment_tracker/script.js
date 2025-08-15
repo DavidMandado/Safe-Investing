@@ -1,6 +1,6 @@
 // Global Variables
 let monthlyData = [];
-let currentAge = 22; // Starting age
+let currentAge = 20; // Starting age
 
 // Tab Management
 function showTab(evt, tabName) {
