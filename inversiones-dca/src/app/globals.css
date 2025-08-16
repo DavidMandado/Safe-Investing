@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globales personalizados */
+:root {
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #0f172a;
+  --color-text-light: #1e293b;
+  --color-text-dark: #f1f5f9;
+}
+
+body {
+  @apply bg-white text-gray-800 dark:bg-slate-900 dark:text-gray-100;
+}

@@ -1,0 +1,235 @@
+// Prisma schema for Inversiones DCA
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User account for authentication and profile
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Local preferences
+  locale        String   @default("es")
+  currency      String   @default("EUR")
+
+  // Relations
+  investmentAccounts InvestmentAccount[]
+  holdings      Holding[]
+  transactions  Transaction[]
+  planMonths    PlanMonth[]
+  goals         Goal[]
+  projectionAssumptions ProjectionAssumption[]
+  notifications Notification[]
+
+  // NextAuth
+  sessions      Session[]
+  oauthAccounts Account[]
+}
+
+// Portfolio account (avoids name conflict with NextAuth's Account)
+model InvestmentAccount {
+  id         String   @id @default(cuid())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  name       String
+  type       String
+  currency   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  holdings    Holding[]
+  transactions Transaction[]
+}
+
+// Assets such as ETFs, indices, cash
+model Asset {
+  id        String   @id @default(cuid())
+  type      String
+  symbol    String   @unique
+  isin      String?  @unique
+  name      String
+  currency  String
+  ter       Float?
+  provider  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  holdings       Holding[]
+  transactions   Transaction[]
+  planAllocations PlanAllocation[]
+}
+
+// Holdings by account and asset
+model Holding {
+  id        String   @id @default(cuid())
+  account   InvestmentAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String
+  asset     Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId   String
+  quantity  Float
+  avgCost   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([accountId, assetId])
+}
+
+// Types of transactions
+enum TransactionType {
+  CONTRIBUTION
+  BUY
+  SELL
+  DIVIDEND
+  FEE
+  TRANSFER
+}
+
+// Transactions such as contributions, buys, sells, fees, dividends
+model Transaction {
+  id        String    @id @default(cuid())
+  account   InvestmentAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String
+  asset     Asset?   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId   String?
+  type      TransactionType
+  date      DateTime
+  quantity  Float?
+  price     Float?
+  fee       Float?    @default(0)
+  total     Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Status of a plan month
+enum PlanStatus {
+  PLANNED
+  DONE
+  SKIPPED
+}
+
+// Plan for a given month
+model PlanMonth {
+  id            String    @id @default(cuid())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  year          Int
+  month         Int
+  amountPlanned Float
+  status        PlanStatus @default(PLANNED)
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  allocations   PlanAllocation[]
+}
+
+// Allocation of a plan by asset percentage
+model PlanAllocation {
+  id          String   @id @default(cuid())
+  planMonth   PlanMonth @relation(fields: [planMonthId], references: [id], onDelete: Cascade)
+  planMonthId String
+  asset       Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId     String
+  percent     Float
+}
+
+// Financial goals set by the user
+model Goal {
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  name         String
+  targetAmount Float
+  targetDate   DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Projection assumptions such as expected return and volatility
+model ProjectionAssumption {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  expectedReturn Float
+  volatility     Float
+  inflation      Float
+  feeDrag        Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Types of notifications
+enum NotificationType {
+  REMINDER
+  DEVIATION
+  REBALANCE
+  IMPORT
+}
+
+// Channels for notifications
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+}
+
+// Notification settings
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel
+  schedule  DateTime?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Models required for NextAuth Prisma adapter
+model Account {
+  id                 String   @id @default(cuid())
+  userId             String?
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

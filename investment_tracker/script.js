@@ -72,7 +72,7 @@ function generateProjections(monthlyAmount, annualReturn, dividendYield) {
     let portfolioValue = 0;
     const monthlyReturn = annualReturn / 12;
 
-    for (let year = 1; year <= 30; year++) {
+    for (let year = 1; year <= 50; year++) {
         const yearlyInvestment = monthlyAmount * 12;
         totalInvested += yearlyInvestment;
 
